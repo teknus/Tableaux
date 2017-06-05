@@ -42,33 +42,26 @@ def format_formula(i,form):
 
 
 def expand_formula(form):
-    '''
-    form_pos = format_formula(split_form(form),form)
-    value = form_pos[0]
-    op = form_pos[1]
-    left = form_pos[2]
-    right = form_pos[3]
-    '''
     value = form[0]
     op = form[1]
     left = form[2]
     right = form[3]
     if is_alpha(value, op):
         if op == "&":
-            return ([1,left],[1,right])
+            return [1,left],[1,right]
         elif op == "|":
-            return ([-1,left],[-1,right])
+            return [-1,left],[-1,right]
         elif op == ">":
-            return ([1,left],[-1,right])
+            return [1,left],[-1,right]
         elif op == "!":
-            return ([value * -1, right])
+            return [value * -1, right]
     elif is_beta(value, op):
         if op == "&":
-            return ([-1,left,1],[-1,right,1])
+            return [-1,left,1],[-1,right,1]
         elif op == "|":
-            return ([1,left,1],[1,right,1])
+            return [1,left,1],[1,right,1]
         elif op == ">":
-            return ([-1,left,1],[1,right,1])
+            return [-1,left,1],[1,right,1]
 
 def ramo_fechado(main_branch):
     uni = [x for x in main_branch if len(x) == 2]
@@ -91,18 +84,25 @@ def expndir_alphas(main_branch,nos_fechados,form):
     while i < len(main_branch):
         if not ramo_saturado(nos_fechados, main_branch):
             if is_alpha(main_branch[i][0], main_branch[i][1]):
-                main_branch.append(expand_formula(main_branch[i]))
+                a1,a2=expand_formula(main_branch[i])
+                main_branch.append(a1)
+                main_branch.append(a2)
                 nos_fechados.append(i)
             elif is_beta(main_branch[i][0], main_branch[i][1]):
-                betas[i] = i
+                pass
             else:
                 nos_fechados.append(i)
+            print(main_branch[i])
         i += 1
 
+def expandir_betas(main_branch,nos_fechados,form):
+    pass
 
 
 def solve(main_branch,nos_fechados,form):
     expndir_alphas(main_branch,nos_fechados,form)
+    if not ramo_saturado(main_branch,nos_fechados):
+        expandir_betas(main_branch,nos_fechados,form)
 
 #Fomulas teste
 form = [[-1,"(c|h)"],[1,"(c>b)"]]
@@ -112,9 +112,11 @@ form = [format_formula(split_form(x),x) for x in form]
 betas = [-1 for x in range(0,sum([len(x[2])+len(x[3])+1 for x in form]))]
 #Criando ramo principal do tableaux
 main_branch = list()
+#adicionar fomulas reformatadas no ramo principal
 main_branch += form
+#lista de nos fechados
 nos_fechados = list()
+###################################################################################################################
 solve(main_branch,nos_fechados,form)
-print(betas)
 #form_2 = [expand_formula(y) for y in form if is_alpha(y[0],y[1])]
-print(nos_fechados,main_branch)
+print(nos_fechados,main_branch,betas)
