@@ -1,4 +1,5 @@
 operadores = [">","|","&","!"]
+pilha_ramos = list()
 # -1 False
 # 1 True
 def is_alpha(value, op):
@@ -210,29 +211,20 @@ def numero_nos(main_branch):
         t += s
     return sum([1 for y in t if y != "(" and y != ")"])
 
-##############################################################################
 
-#Fomulas teste
-form = [(-1,"(x>(a|!((c|b))))"),(-1, 'b'),(1, 'x'), (-1, 'a')]
-#Criando ramo principal do tableaux
-main_branch = list()
-#adicionar fomulas reformatadas no ramo principal
-main_branch += form
-#lista de nos fechados
-nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
-#Pilha de ramos
-pilha_ramos = list()
-n = 0
-betas = list()
-betas = list()
-v,m,n = solve(main_branch,nos_fechados,betas)
-if v:
-    print("Valida")
-    print("Main: ",main_branch)
-    print("Pilha: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
-elif len(pilha_ramos) > 1:
-    print("Refutada")
-    print("Valoracao: ",pilha_ramos[-1][0])
-else:
-    print("Refutada")
-    print("Valoracao: ",pilha_ramos[-1][0])
+
+def run(main_branch):
+    betas = list()
+    nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
+    v,m,n = solve(main_branch,nos_fechados,betas)
+    if v:
+        print("Valida")
+        print("Main: ",main_branch)
+        print("Pilha: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
+    elif len(pilha_ramos) > 1:
+        print("Refutada")
+        print("Valoracao: ",pilha_ramos[-1][0])
+    else:
+        print("Refutada")
+        print("Valoracao: ",pilha_ramos[-1][0])
+##############################################################################
