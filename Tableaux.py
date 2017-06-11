@@ -18,12 +18,10 @@ def is_beta(value,op):
         return False
 
 def ramo_saturado(nos_fechados,form):
-    i = len(form)
-    while i > -1:
-        if i not in nos_fechados:
-            return False
-        i -= 1
-    return True
+    for i in nos_fechados:
+        if i != -1:
+            True
+    return False
 
 def ramo_fechado(main_branch):
     uni = [x for x in main_branch if is_uni(x)]
@@ -88,13 +86,14 @@ def add_to_main(f1,f2,main_branch):
 
 
 def solve(main_branch,nos_fechados,betas):
+    #alfas
     i = 0
     n = len(main_branch)
-
     while i < n:
         if nos_fechados[i] == -1:
             if not is_uni(main_branch[i]):
-                main_branch[i] = format_formula(main_branch[i])
+                if len(main_branch[i]) != 4:
+                    main_branch[i] = format_formula(main_branch[i])
                 if len(main_branch[i][1]) > 1:
                     main_branch[i] = format_formula(main_branch[i])
                 alfa = is_alpha(main_branch[i][0],main_branch[i][1])
@@ -109,60 +108,78 @@ def solve(main_branch,nos_fechados,betas):
                 j = i -1 
                 while j > 0:
                     if is_uni(main_branch[j]):
-                        print(main_branch[j])
                         if temp[0] * -1 == main_branch[j][0] and temp[1] == main_branch[j][1]:
+                            #print("alfa",i,j,main_branch)
                             nos_fechados[i] = 1
                             nos_fechados[j] = 1
-                    j -= 1
-
-        if ramo_saturado(nos_fechados,main_branch):
-            if ramo_fechado(main_branch):
-                return True,main_branch,nos_fechados
-            return False,main_branch,nos_fechados
-        
+                    j -= 1    
         i += 1
         n = len(main_branch)
-    
+    #Betas
     while len(betas) > 0:
         i = betas[0]
         betas.remove(i)
         if not is_uni(main_branch[i]):
-                if len(main_branch[i][1]) > 1:
-                    main_branch[i] = format_formula(main_branch[i])
-                alfa = is_alpha(main_branch[i][0],main_branch[i][1])
-                if not alfa:
-                    f1 , f2 = expand_formula(main_branch[i][0],main_branch[i][1],main_branch[i][2],main_branch[i][3],alfa)
-                    nos_fechados[i] = 1
-                    ramo = main_branch[:]
-                    ramo.append(f1)
-                    f,ramo,nos_fechados = solve(main_branch,nos_fechados,betas)
-                    if not f :
-                        if len(f2[1]) > 1:
-                            f1 = format_formula(f2)
-                        return f, ramo+[f2],nos_fechados
-                    ramo = main_branch[:]                    
-                    ramo.append(f1)
-                    f,ramo,nos_fechados = solve(ramo,nos_fechados,betas)
-                    if not f :
-                        if len(f1[1]) > 1:
-                            f1 = format_formula(f1)
-                        return f, ramo+[f1],nos_fechados
+            if len(main_branch[i][1]) > 1:
+                main_branch[i] = format_formula(main_branch[i])
+            alfa = is_alpha(main_branch[i][0],main_branch[i][1])
+            if not alfa:
+                f1 , f2 = expand_formula(main_branch[i][0],main_branch[i][1],main_branch[i][2],main_branch[i][3],alfa)
+                nos_fechados[i] = 1
+                temp_main = main_branch[:]
+                temp_nos_fechados = nos_fechados[:]
+                ####################################
+                test = False
+                if len(f2[1]) > 1:
+                    f2 = format_formula(f2)
+                    g1,g2 = expand_formula(f2[0],f2[1],f2[2],f2[3],is_alpha(f2[0],f2[1]))
+                    pilha_ramos.append((main_branch[:]+[f1],[g1],[g2],nos_fechados))
+                    test = True
+                else:
+                    pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados))
+
+                f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
+                print("f1",f,ramo,ramo_fechado(ramo))
+                if not f :
+                    if test:
+                        main_branch = ramo+[g1]+[g2]
+                        return f, main_branch,n
+                    main_branch = ramo+[f1]
+                    return f,ramo+[f2],n
+                ######################################
+                main_branch = temp_main[:]
+                nos_fechados = temp_nos_fechados[:]
+                test = False
+                if len(f1[1]) > 1:
+                    f1 = format_formula(f1)
+                    g1,g2 = expand_formula(f1[0],f1[1],f1[2],f1[3],is_alpha(f1[0],f1[1]))
+                    pilha_ramos.append((main_branch[:]+[f2],[g1],[g2],nos_fechados))
+                    test = True
+                else:
+                    pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados))
+
+                f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
+                print("f2",f,ramo,ramo_fechado(ramo))
+
+                if not f :
+                    if test:
+                        main_branch = ramo+[g1]+[g2]
+                        return f, main_branch ,n
+                    main_branch = ramo+[f1]
+                    return f,main_branch,n
+                ########################################
         else:
             temp = main_branch[i]
             j = i -1 
             while j > 0:
                 if is_uni(main_branch[j]):
-                    print(main_branch[j])
                     if temp[0] * -1 == main_branch[j][0] and temp[1] == main_branch[j][1]:
                         nos_fechados[i] = 1
                         nos_fechados[j] = 1
                 j -= 1
-       
-        if ramo_saturado(nos_fechados,main_branch):
-            if ramo_fechado(main_branch):
-                return True,main_branch,nos_fechados
-            return False,main_branch,nos_fechados
-    return ramo_fechado(main_branch),main_branch,nos_fechados
+    if len(pilha_ramos) == 0:
+        return ramo_fechado(main_branch),main_branch,nos_fechados
+    return ramo_fechado(pilha_ramos[-1][0]),main_branch,nos_fechados
 
 def expand_formula(value,op,left,right,alfa):
     def atribuir_valores(val, form):
@@ -198,7 +215,7 @@ def numero_nos(main_branch):
 ##############################################################################
 
 #Fomulas teste
-form = [[1,"(c>b)"],[-1,'b']]
+form = [(-1,"(x>(a|(c&b)))"),(-1, 'b'),(1, 'x'), (-1, 'a')]
 #Criando ramo principal do tableaux
 main_branch = list()
 #adicionar fomulas reformatadas no ramo principal
@@ -209,9 +226,17 @@ nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
 pilha_ramos = list()
 n = 0
 betas = list()
-
-print(solve(main_branch,nos_fechados,betas))
-print("Main: ",main_branch)
-print("Betas: ",betas)
 betas = list()
-print("Nos Fechados: ", nos_fechados)
+v,m,n = solve(main_branch,nos_fechados,betas)
+if v:
+    print("Valida")
+    print("Main: ",main_branch)
+    print("Pilha: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
+elif len(pilha_ramos) > 1:
+    print("Refutada")
+    print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
+    print("Main: ",main_branch)
+else:
+    print("Refutada")
+    print("Valoracao: ",list(set([ x for x in main_branch if is_uni(x)])))
+    print("Main: ",main_branch)
