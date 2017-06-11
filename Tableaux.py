@@ -26,16 +26,12 @@ def ramo_saturado(nos_fechados,form):
     return True
 
 def ramo_fechado(main_branch):
-    uni = [x for x in main_branch if len(x) == 2]
+    uni = [x for x in main_branch if is_uni(x)]
     for i in uni:
         for j in uni:
             if i[0] * -1 == j[0] and i[1] == j[1]:
                 return True
     return False
-
-
-def solve(main_branch,nos_fechados):
-    pass
 
 
 def split_form(input_tuple):
@@ -49,8 +45,10 @@ def split_form(input_tuple):
     i = 0
     n = len(input_string)
 
-    if n == 3 or n <= 1:
-        return input_string
+    if n == 3:
+        return 1
+    elif n <= 1:
+        return 0
     while i < n:
         if input_string[i] in operadores:
             op_stack.append(i)
@@ -63,63 +61,116 @@ def split_form(input_tuple):
     return list(reversed(stack_form))[0]
 
 def format_formula(form):
-    n = len(form)
-    if n >= 2:
-        posicao_op = split_form(form[1])
-        op = form[1][posicao_op]
-        if op == "!":
-            return (form[0], op, form[1][1:posicao_op], form[1][posicao_op + 2:len(form[1]) - 1])
-        return (form[0], op, form[1][1:posicao_op], form[1][posicao_op + 1:len(form[1]) - 1])
-        #      ( valoração,operador,formula esquerda, formula direita)
-    elif n == 1:
-        posicao_op = split_form(form[0])
-        if type(posicao_op) == type(tuple()):
-            posicao_op = posicao_op[0]
-        elif type(posicao_op) != type(0):
-            return form
-        op = form[0][posicao_op]
-        if op == "!":
-            return (form[0][posicao_op], form[0][1:posicao_op], form[0][posicao_op + 2:len(form[0]) - 1])
-        return (form[0][posicao_op], form[0][1:posicao_op], form[0][posicao_op + 1:len(form[0]) - 1])
-        #       ( valoração,operador,formula esquerda, formula direita)
-    return form
+        op_pos = split_form(form)
+        if len(form) == 2:
+            if op_pos == 0:
+                if len(form[1]) == 4:
+                    return(form[0],form[1][op_pos],form[1][2:len(form[1]) -1 ],"")
+                f = form[1][2:len(form[1]) - 1]
+                return(form[0],f)
+            if is_uni(form):
+                return form
+            return (form[0],form[1][op_pos],form[1][1:op_pos],form[1][op_pos+1:len(form[1]) -1])
 
-#Fomulas teste
-form = [[-1,'!((c>(b&(g|a))))']]
-#Criando ramo principal do tableaux
-main_branch = list()
-#adicionar fomulas reformatadas no ramo principal
-main_branch += form
-#lista de nos fechados
-nos_fechados = list()
-#Pilha de ramos
-pilha_ramos = list()
-n = 0
-###################################################################################################################
-def expand_formula(value,form,alfa,expanded_formula):
+        #       (operador,formula esquerda, formula direita)
+
+def is_uni(form):
+    if len(form) > 2:
+        return False
+    else:
+        return len(form[1]) <= 1
+
+def add_to_main(f1,f2,main_branch):
+    if len(f1) >= 1 and f1 != "":
+        main_branch.append(f1)
+    if len(f2) >= 1 and f2 != "":
+        main_branch.append(f2)
+
+
+def solve(main_branch,nos_fechados,betas):
+    i = 0
+    n = len(main_branch)
+
+    while i < n:
+        if nos_fechados[i] == -1:
+            if not is_uni(main_branch[i]):
+                main_branch[i] = format_formula(main_branch[i])
+                if len(main_branch[i][1]) > 1:
+                    main_branch[i] = format_formula(main_branch[i])
+                alfa = is_alpha(main_branch[i][0],main_branch[i][1])
+                if alfa:
+                    f1 , f2 = expand_formula(main_branch[i][0],main_branch[i][1],main_branch[i][2],main_branch[i][3],alfa)
+                    add_to_main(f1,f2,main_branch)
+                    nos_fechados[i] = 1
+                else:
+                    betas.append(i)
+            else:
+                temp = main_branch[i]
+                j = i -1 
+                while j > 0:
+                    if is_uni(main_branch[j]):
+                        print(main_branch[j])
+                        if temp[0] * -1 == main_branch[j][0] and temp[1] == main_branch[j][1]:
+                            nos_fechados[i] = 1
+                            nos_fechados[j] = 1
+                    j -= 1
+
+        if ramo_saturado(nos_fechados,main_branch):
+            if ramo_fechado(main_branch):
+                return True,main_branch,nos_fechados
+            return False,main_branch,nos_fechados
+        
+        i += 1
+        n = len(main_branch)
+    
+    while len(betas) > 0:
+        i = betas[0]
+        betas.remove(i)
+        if not is_uni(main_branch[i]):
+                if len(main_branch[i][1]) > 1:
+                    main_branch[i] = format_formula(main_branch[i])
+                alfa = is_alpha(main_branch[i][0],main_branch[i][1])
+                if not alfa:
+                    f1 , f2 = expand_formula(main_branch[i][0],main_branch[i][1],main_branch[i][2],main_branch[i][3],alfa)
+                    nos_fechados[i] = 1
+                    ramo = main_branch[:]
+                    ramo.append(f1)
+                    f,ramo,nos_fechados = solve(main_branch,nos_fechados,betas)
+                    if not f :
+                        if len(f2[1]) > 1:
+                            f1 = format_formula(f2)
+                        return f, ramo+[f2],nos_fechados
+                    ramo = main_branch[:]                    
+                    ramo.append(f1)
+                    f,ramo,nos_fechados = solve(ramo,nos_fechados,betas)
+                    if not f :
+                        if len(f1[1]) > 1:
+                            f1 = format_formula(f1)
+                        return f, ramo+[f1],nos_fechados
+        else:
+            temp = main_branch[i]
+            j = i -1 
+            while j > 0:
+                if is_uni(main_branch[j]):
+                    print(main_branch[j])
+                    if temp[0] * -1 == main_branch[j][0] and temp[1] == main_branch[j][1]:
+                        nos_fechados[i] = 1
+                        nos_fechados[j] = 1
+                j -= 1
+       
+        if ramo_saturado(nos_fechados,main_branch):
+            if ramo_fechado(main_branch):
+                return True,main_branch,nos_fechados
+            return False,main_branch,nos_fechados
+    return ramo_fechado(main_branch),main_branch,nos_fechados
+
+def expand_formula(value,op,left,right,alfa):
     def atribuir_valores(val, form):
         if type(form) == type(list()) or type(form) == type(tuple()):
             return [val] + [x for x in form]
-        return [val,form]
-    if expanded_formula:
-        if len(form) == 4:
-            op = form[1]
-            left = format_formula([form[2]])
-            right = format_formula([form[3]])
-        else:
-            op = form[0]
-            left = format_formula([form[1]])
-            right = format_formula([form[2]])
-    else:
-        form = format_formula(form)
-        if len(form) == 4:
-            op = form[1]
-            left = format_formula([form[2]])
-            right = format_formula([form[3]])
-        else:
-            op = form[0]
-            left = format_formula([form[1]])
-            right = format_formula([form[2]])
+        return (val,form)
+    if right == "":
+        return "",atribuir_valores(value * -1, left)
 
     if alfa:
         if op == "&":
@@ -128,8 +179,6 @@ def expand_formula(value,form,alfa,expanded_formula):
             return atribuir_valores(-1,left),atribuir_valores(-1,right)
         elif op == ">":
             return atribuir_valores(1,left),atribuir_valores(-1,right)
-        elif op == "!":
-            return atribuir_valores(value * -1, right)
     else:
         if op == "&":
             return atribuir_valores(-1,left),atribuir_valores(-1,right)
@@ -138,23 +187,31 @@ def expand_formula(value,form,alfa,expanded_formula):
         elif op == ">":
             return atribuir_valores(-1,left),atribuir_valores(1,right)
 
+def numero_nos(main_branch):
+    t = ""
+    for s in [x[1] for x in main_branch]:
+        t += s
+    return sum([1 for y in t if y != "(" and y != ")"])
 
-posicao_op = split_form(form[0])
-#print(form[0][0],form[0][1][posicao_op], form[0][1][1:posicao_op], form[0][1][posicao_op+1:len(form[0][1]) - 1])
-main_branch.append(expand_formula(form[0][0],form[0],True,False))
-f1, f2 = expand_formula(main_branch[-1][0],main_branch[-1],True,True)
-main_branch.append(f1)
-main_branch.append(f2)
-f1, f2 = expand_formula(main_branch[-1][0],main_branch[-1],True,True)
-main_branch.append(f1)
-main_branch.append(f2)
-f1, f2 = expand_formula(main_branch[-1][0],main_branch[-1],True,True)
-main_branch.append(f1)
-main_branch.append(f2)
-print(main_branch)
-print(ramo_fechado(main_branch))
-'''
-right = form[0][1][posicao_op+1:]
-form = right[:len(right)-1]
-posicao_op = split_form(form)
-print(form[posicao_op], form[1:posicao_op], form[posicao_op+1:len(form) - 1])'''
+
+
+##############################################################################
+
+#Fomulas teste
+form = [[1,"(c>b)"],[-1,'b']]
+#Criando ramo principal do tableaux
+main_branch = list()
+#adicionar fomulas reformatadas no ramo principal
+main_branch += form
+#lista de nos fechados
+nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
+#Pilha de ramos
+pilha_ramos = list()
+n = 0
+betas = list()
+
+print(solve(main_branch,nos_fechados,betas))
+print("Main: ",main_branch)
+print("Betas: ",betas)
+betas = list()
+print("Nos Fechados: ", nos_fechados)
