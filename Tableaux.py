@@ -1,5 +1,6 @@
 operadores = [">","|","&","!"]
 pilha_ramos = list()
+nos = 0
 # -1 False
 # 1 True
 def is_alpha(value, op):
@@ -91,6 +92,8 @@ def solve(main_branch,nos_fechados,betas):
     i = 0
     n = len(main_branch)
     while i < n:
+        if i > nos:
+            nos_fechados.append(-1)
         if nos_fechados[i] == -1:
             if not is_uni(main_branch[i]):
                 if len(main_branch[i]) != 4:
@@ -140,7 +143,7 @@ def solve(main_branch,nos_fechados,betas):
                     pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados))
 
                 f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
-                print("f1",f,ramo,ramo_fechado(ramo),f2)
+                #print("f1",f,ramo,ramo_fechado(ramo),f2)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
@@ -160,7 +163,7 @@ def solve(main_branch,nos_fechados,betas):
                     pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados))
 
                 f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
-                print("f2",f,ramo,ramo_fechado(ramo),f1)
+                #print("f2",f,ramo,ramo_fechado(ramo),f1)
 
                 if not f :
                     if test:
@@ -212,19 +215,18 @@ def numero_nos(main_branch):
     return sum([1 for y in t if y != "(" and y != ")"])
 
 
-
 def run(main_branch):
+    nos = numero_nos(main_branch)
     betas = list()
     nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
+    print(numero_nos(main_branch))
     v,m,n = solve(main_branch,nos_fechados,betas)
     if v:
         print("Valida")
-        print("Main: ",main_branch)
-        print("Pilha: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
     elif len(pilha_ramos) > 1:
         print("Refutada")
-        print("Valoracao: ",pilha_ramos[-1][0])
+        print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
     else:
         print("Refutada")
-        print("Valoracao: ",pilha_ramos[-1][0])
+        print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
 ##############################################################################

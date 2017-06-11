@@ -1,12 +1,11 @@
 from Tableaux import *
 
-
+# > implicacao
+# ! negacao
+# | ou
+# & e
 #Fomulas teste
-form = [(-1,"(x>(a|!((c|b))))"),(-1, 'b'),(1, 'x'), (-1, 'a')]
-#Criando ramo principal do tableaux
-main_branch = list()
-#adicionar fomulas reformatadas no ramo principal
-main_branch += form
+main_branch = [(1,"(a|b)"),(1, '(a>(c|d))'),(1, "(b>(c|d))"),(1,"(c>(e|f))"),(1,"(d>(e|f))"),(1,"(e|f)")]
 run(main_branch)
 #lista de nos fechados
 #Pilha de ramos
