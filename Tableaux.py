@@ -210,8 +210,6 @@ def numero_nos(main_branch):
         t += s
     return sum([1 for y in t if y != "(" and y != ")"])
 
-
-
 ##############################################################################
 
 #Fomulas teste
