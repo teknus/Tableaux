@@ -65,7 +65,7 @@ def format_formula(form):
                 if len(form[1]) == 4:
                     return(form[0],form[1][op_pos],form[1][2:len(form[1]) -1 ],"")
                 f = form[1][2:len(form[1]) - 1]
-                return(form[0],f)
+                return(form[0],form[1][0],f,"")
             if is_uni(form):
                 return form
             return (form[0],form[1][op_pos],form[1][1:op_pos],form[1][op_pos+1:len(form[1]) -1])
@@ -139,13 +139,13 @@ def solve(main_branch,nos_fechados,betas):
                     pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados))
 
                 f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
-                print("f1",f,ramo,ramo_fechado(ramo))
+                print("f1",f,ramo,ramo_fechado(ramo),f2)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
                         return f, main_branch,n
-                    main_branch = ramo+[f1]
-                    return f,ramo+[f2],n
+                    main_branch = ramo+[f2]
+                    return f,main_branch,n
                 ######################################
                 main_branch = temp_main[:]
                 nos_fechados = temp_nos_fechados[:]
@@ -159,7 +159,7 @@ def solve(main_branch,nos_fechados,betas):
                     pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados))
 
                 f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
-                print("f2",f,ramo,ramo_fechado(ramo))
+                print("f2",f,ramo,ramo_fechado(ramo),f1)
 
                 if not f :
                     if test:
@@ -213,7 +213,7 @@ def numero_nos(main_branch):
 ##############################################################################
 
 #Fomulas teste
-form = [(-1,"(x>(a|(c&b)))"),(-1, 'b'),(1, 'x'), (-1, 'a')]
+form = [(-1,"(x>(a|!((c|b))))"),(-1, 'b'),(1, 'x'), (-1, 'a')]
 #Criando ramo principal do tableaux
 main_branch = list()
 #adicionar fomulas reformatadas no ramo principal
@@ -232,9 +232,7 @@ if v:
     print("Pilha: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
 elif len(pilha_ramos) > 1:
     print("Refutada")
-    print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0] if is_uni(x)])))
-    print("Main: ",main_branch)
+    print("Valoracao: ",pilha_ramos[-1][0])
 else:
     print("Refutada")
-    print("Valoracao: ",list(set([ x for x in main_branch if is_uni(x)])))
-    print("Main: ",main_branch)
+    print("Valoracao: ",pilha_ramos[-1][0])
