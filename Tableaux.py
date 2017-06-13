@@ -1,6 +1,9 @@
 operadores = [">","|","&","!"]
 pilha_ramos = list()
 nos = 0
+max_nos = 0
+num_i = []
+l_ramos = []
 # -1 False
 # 1 True
 def is_alpha(value, op):
@@ -87,12 +90,13 @@ def add_to_main(f1,f2,main_branch):
         main_branch.append(f2)
 
 
-def solve(main_branch,nos_fechados,betas):
+def solve(main_branch,nos_fechados,betas,num_ramos):
     #alfas
     i = 0
     n = len(main_branch)
     while i < n:
         if i > nos:
+            max_nos = i
             nos_fechados.append(-1)
         if nos_fechados[i] == -1:
             if not is_uni(main_branch[i]):
@@ -141,15 +145,16 @@ def solve(main_branch,nos_fechados,betas):
                     test = True
                 else:
                     pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados))
-
-                f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
+                num_ramos += 1
+                l_ramos.append(i)
+                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos)
                 #print("f1",f,ramo,ramo_fechado(ramo),f2)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
-                        return f, main_branch,n
+                        return f, main_branch,n, num_ramos
                     main_branch = ramo+[f2]
-                    return f,main_branch,n
+                    return f,main_branch,n, num_ramos
                 ######################################
                 main_branch = temp_main[:]
                 nos_fechados = temp_nos_fechados[:]
@@ -161,16 +166,17 @@ def solve(main_branch,nos_fechados,betas):
                     test = True
                 else:
                     pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados))
-
-                f,ramo,n = solve(pilha_ramos[-1][0],nos_fechados,betas)
+                num_ramos += 1
+                l_ramos.append(i)
+                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos)
                 #print("f2",f,ramo,ramo_fechado(ramo),f1)
 
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
-                        return f, main_branch ,n
+                        return f, main_branch ,n , num_ramos
                     main_branch = ramo+[f1]
-                    return f,main_branch,n
+                    return f,main_branch,n,num_ramos
                 ########################################
         else:
             temp = main_branch[i]
@@ -182,8 +188,9 @@ def solve(main_branch,nos_fechados,betas):
                         nos_fechados[j] = 1
                 j -= 1
     if len(pilha_ramos) == 0:
-        return ramo_fechado(main_branch),main_branch,nos_fechados
-    return ramo_fechado(pilha_ramos[-1][0]),main_branch,nos_fechados
+        return ramo_fechado(main_branch),main_branch,nos_fechados,num_ramos
+    num_i.append(i)
+    return ramo_fechado(pilha_ramos[-1][0]),main_branch,nos_fechados,num_ramos
 
 def expand_formula(value,op,left,right,alfa):
     def atribuir_valores(val, form):
@@ -219,14 +226,14 @@ def run(main_branch):
     nos = numero_nos(main_branch)
     betas = list()
     nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
-    print(numero_nos(main_branch))
-    v,m,n = solve(main_branch,nos_fechados,betas)
+    v,m,n,num_ramos = solve(main_branch,nos_fechados,betas,0)
     if v:
-        print("Valida")
+        print("Valida",[len(x[0]) for x in pilha_ramos],nos,num_ramos)
+        print(max(num_i),len(num_i),l_ramos,len(l_ramos))
     elif len(pilha_ramos) > 1:
-        print("Refutada")
+        print("Refutada: ", nos,num_ramos)
         print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
     else:
-        print("Refutada")
+        print("Refutada: ",nos,num_ramos)
         print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
 ##############################################################################
