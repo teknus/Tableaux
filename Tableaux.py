@@ -90,9 +90,9 @@ def add_to_main(f1,f2,main_branch):
         main_branch.append(f2)
 
 
-def solve(main_branch,nos_fechados,betas,num_ramos):
+def solve(main_branch,nos_fechados,betas,num_ramos=1,i=0):
     #alfas
-    i = 0
+    print(main_branch)
     n = len(main_branch)
     while i < n:
         if i > nos:
@@ -125,13 +125,16 @@ def solve(main_branch,nos_fechados,betas,num_ramos):
         n = len(main_branch)
     #Betas
     while len(betas) > 0:
-        i = betas[0]
+        print("Beta")
+        i = betas[-1]
+        nos_fechados[i] = 1
         betas.remove(i)
         if not is_uni(main_branch[i]):
             if len(main_branch[i][1]) > 1:
                 main_branch[i] = format_formula(main_branch[i])
             alfa = is_alpha(main_branch[i][0],main_branch[i][1])
             if not alfa:
+                num_ramos += 1
                 f1 , f2 = expand_formula(main_branch[i][0],main_branch[i][1],main_branch[i][2],main_branch[i][3],alfa)
                 nos_fechados[i] = 1
                 temp_main = main_branch[:]
@@ -145,9 +148,10 @@ def solve(main_branch,nos_fechados,betas,num_ramos):
                     test = True
                 else:
                     pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados))
-                num_ramos += 1
                 l_ramos.append(i)
-                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos)
+                print("Teste de ramo ",ramo_fechado(pilha_ramos[-1][0]))
+                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
+                print("Retorno do solve ",f)
                 #print("f1",f,ramo,ramo_fechado(ramo),f2)
                 if not f :
                     if test:
@@ -166,9 +170,10 @@ def solve(main_branch,nos_fechados,betas,num_ramos):
                     test = True
                 else:
                     pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados))
-                num_ramos += 1
                 l_ramos.append(i)
-                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos)
+                print("Teste de ramo ",ramo_fechado(pilha_ramos[-1][0]))
+                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
+                print("Retorno do solve ",f)
                 #print("f2",f,ramo,ramo_fechado(ramo),f1)
 
                 if not f :
@@ -188,7 +193,7 @@ def solve(main_branch,nos_fechados,betas,num_ramos):
                         nos_fechados[j] = 1
                 j -= 1
     if len(pilha_ramos) == 0:
-        return ramo_fechado(main_branch),main_branch,nos_fechados,num_ramos
+        return ramo_fechado(main_branch),main_branch,nos_fechados,num_ramos 
     num_i.append(i)
     return ramo_fechado(pilha_ramos[-1][0]),main_branch,nos_fechados,num_ramos
 
@@ -226,14 +231,14 @@ def run(main_branch):
     nos = numero_nos(main_branch)
     betas = list()
     nos_fechados = [-1 for x in range(0,numero_nos(main_branch))]
-    v,m,n,num_ramos = solve(main_branch,nos_fechados,betas,0)
+    v,m,n,num_ramos = solve(main_branch,nos_fechados,betas)
     if v:
-        print("Valida",[len(x[0]) for x in pilha_ramos],nos,num_ramos)
-        print(max(num_i),len(num_i),l_ramos,len(l_ramos))
+        print("Valida",len(pilha_ramos),[x[0] for x in pilha_ramos],nos,num_ramos)
+        #print(max(num_i),len(num_i),l_ramos,len(l_ramos))
     elif len(pilha_ramos) > 1:
         print("Refutada: ", nos,num_ramos)
-        print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
+        print("Valoracao: ",len(pilha_ramos), list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
     else:
         print("Refutada: ",nos,num_ramos)
-        print("Valoracao: ",list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
+        print("Valoracao: ",len(pilha_ramos),list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
 ##############################################################################
