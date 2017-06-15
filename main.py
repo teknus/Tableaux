@@ -1,3 +1,4 @@
+#Pyhton 3
 from Tableaux import *
 
 # > implicacao
@@ -6,8 +7,8 @@ from Tableaux import *
 # & e
 #Fomulas Notavel de teste
 
-main_branch = [FormulaDeEntrada(1, '(a>(c|d))'),FormulaDeEntrada(1, "(b>(c|d))"),FormulaDeEntrada(1,"(c>(e|f))"),FormulaDeEntrada(1,"(d>(e|f))"),FormulaDeEntrada(-1,"(e|f)"),FormulaDeEntrada(1,"(a|b)")]
-main_branch = [FormulaDeEntrada(1,"(c>d)"),FormulaDeEntrada(1,"c"),FormulaDeEntrada(-1,"d")]
+main_branch = [(1,"(a|b)"),(1, '(a>(c|d))'),(1, "(b>(c|d))"),(1,"(c>(e|f))"),(1,"(d>(e|f))"),(-1,"(e|f)")]
+#main_branch = [(-1,"(c>(!(c)|d))")]
 run(main_branch)
 #lista de nos fechados
 #Pilha de ramos

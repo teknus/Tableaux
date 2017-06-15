@@ -246,18 +246,29 @@ def numero_nos(main_branch):
 
 
 def run(main_branch):
-    sorted(main_branch)
+    main_branch = [FormulaDeEntrada(x[0],x[1]) for x in main_branch]
+    main_branch.sort()
     nos = numero_nos(main_branch)
     main_branch = [(f.value,f.form) for f in main_branch]
     betas = list()
     nos_fechados = [-1 for x in range(0,nos)]
+    from time import time
+    ini = time()
     v,m,n,num_ramos = solve(main_branch,nos_fechados,betas)
+    end = time()
     if v:
-        print("Valida",len(pilha_ramos),[x[0] for x in pilha_ramos],nos,num_ramos)
+        print("Valida")
+        print("Numero de Nos: {}".format(nos))
+        print("Numero de Ramos: {}".format(num_ramos))
+        print("Tempo: {} ms".format((end-ini) *1000))
     elif len(pilha_ramos) > 1:
-        print("Refutada: ", nos,num_ramos)
-        print("Valoracao: ",len(pilha_ramos), list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
+        print("Refutada")
+        print("Valoracao:")
+        print(list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
+        print("Tempo: {} ms".format((end-ini) *1000))
     else:
-        print("Refutada: ",nos,num_ramos)
-        print("Valoracao: ",len(pilha_ramos),list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
+        print("Refutada")
+        print("Valoracao: ")
+        print(list(set([ x for x in m if is_uni(x)])))
+        print("Tempo: {} ms".format((end-ini) *1000))
 ##############################################################################
