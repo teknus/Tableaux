@@ -5,7 +5,7 @@ max_nos = 0
 num_i = []
 # -1 False
 # 1 True
-
+pilha_ramos_fechados = list()
 #Essa classe torna possivel ordenar as formulas de entrada
 class FormulaDeEntrada:
     def __init__(self, value,form):
@@ -105,8 +105,9 @@ def is_uni(form):
     #Faz a checagem se a formula eh unitaria
     if len(form) > 2:
         return False
-    else:
+    elif len(form) > 1:
         return len(form[1]) <= 1
+    return False
 
 def add_to_main(f1,f2,main_branch):
     #Tratamento para formulas alfas serem adicionadas diretamente no 
@@ -168,17 +169,19 @@ def solve(main_branch,nos_fechados,betas,num_ramos=1,i=0):
                 if len(f2[1]) > 1:
                     f2 = format_formula(f2)
                     g1,g2 = expand_formula(f2[0],f2[1],f2[2],f2[3],is_alpha(f2[0],f2[1]))
-                    pilha_ramos.append((main_branch[:]+[f1],[g1],[g2],nos_fechados))
+                    pilha_ramos.append((main_branch[:]+[f1],[g1]+[g2],nos_fechados,False))
                     test = True
                 else:
-                    pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados))
+                    pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados,False))
                 f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
-                        return f, main_branch,n, num_ramos
+                        pilha_ramos_fechados.append((f, main_branch,n, num_ramos))
                     main_branch = ramo+[f2]
-                    return f,main_branch,n, num_ramos
+                    pilha_ramos_fechados.append((f,main_branch,n, num_ramos))
+                temp_ramo = pilha_ramos.pop()
+                pilha_ramos.append((temp_ramo[0],temp_ramo[1],temp_ramo[2],True))
                 ######################################
                 main_branch = temp_main[:]
                 nos_fechados = temp_nos_fechados[:]
@@ -186,17 +189,19 @@ def solve(main_branch,nos_fechados,betas,num_ramos=1,i=0):
                 if len(f1[1]) > 1:
                     f1 = format_formula(f1)
                     g1,g2 = expand_formula(f1[0],f1[1],f1[2],f1[3],is_alpha(f1[0],f1[1]))
-                    pilha_ramos.append((main_branch[:]+[f2],[g1],[g2],nos_fechados))
+                    pilha_ramos.append((main_branch[:]+[f2],[g1]+[g2],nos_fechados,False))
                     test = True
                 else:
-                    pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados))
+                    pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados,False))
                 f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
-                        return f, main_branch ,n , num_ramos
+                        pilha_ramos_fechados.append((f, main_branch ,n , num_ramos))
                     main_branch = ramo+[f1]
-                    return f,main_branch,n,num_ramos
+                    pilha_ramos_fechados.append((f,main_branch,n,num_ramos))
+                temp_ramo = pilha_ramos.pop()
+                pilha_ramos.append((temp_ramo[0],temp_ramo[1],temp_ramo[2],True))
                 ########################################
         else:
             temp = main_branch[i]
@@ -245,6 +250,39 @@ def numero_nos(main_branch):
     return sum([1 for y in t if y != "(" and y != ")"])
 
 
+
+def getValoracao(pilha_ramos):
+    i = 0 
+    j = pilha_ramos[-1]
+    val = [x for x in j[0]+j[1] if is_uni(x)]
+    while  i < len(j[0])-1:
+        if j[2][i] == -1 and len(j[0][i]) >= 2:
+            if len(j[0][i]) == 2:
+                if len(j[0][i][1]) > 1:
+                    j[0][i]= format_formula(j[0][i])
+                else:
+                    i += 1
+                    continue
+            f1, f2 = expand_formula(j[0][i][0],j[0][i][1],j[0][i][2],j[0][i][3],is_alpha(j[0][i][0],j[0][i][1]))
+            add_to_main(f1,f2,val)
+            add_to_main(f1,f2,j[0])
+            j[2].append(-1)
+        i += 1
+    i = 0
+    temp = list()
+    while i < len(val):
+        j = i+1
+        contradicao = False
+        while j < len(val):
+            if val[i][0] * -1 == val[j][0] and val[i][1] == val[j][1]:
+                contradicao = True
+            j += 1
+        if not contradicao:
+            print(val[i])
+            temp.append(val[i])
+        i += 1
+    return list(x for x in temp if len(x[1]) < 2 )
+
 def run(main_branch):
     main_branch = [FormulaDeEntrada(x[0],x[1]) for x in main_branch]
     main_branch.sort()
@@ -257,18 +295,22 @@ def run(main_branch):
     v,m,n,num_ramos = solve(main_branch,nos_fechados,betas)
     end = time()
     if v:
-        print("Valida")
-        print("Numero de Nos: {}".format(nos))
-        print("Numero de Ramos: {}".format(num_ramos))
-        print("Tempo: {} ms".format((end-ini) *1000))
+        # print("Valida")
+        # print("Numero de Nos: {}".format(nos))
+        # print("Numero de Ramos: {}".format(num_ramos))
+        # print("Tempo: {} ms".format((end-ini) *1000))
+        return (end-ini) *1000,num_ramos,nos
     elif len(pilha_ramos) > 1:
-        print("Refutada")
-        print("Valoracao:")
-        print(list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
-        print("Tempo: {} ms".format((end-ini) *1000))
+        # print("Refutada")
+        # print("Valoracao:")
+        # print(list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
+        # print("Tempo: {} ms".format((end-ini) *1000))
+        val = getValoracao(pilha_ramos)
+        return (end-ini) *1000,val
     else:
-        print("Refutada")
-        print("Valoracao: ")
-        print(list(set([ x for x in m if is_uni(x)])))
-        print("Tempo: {} ms".format((end-ini) *1000))
+        # print("Refutada")
+        # print("Valoracao: ")
+        # print(list(set([ x for x in m if is_uni(x)])))
+        # print("Tempo: {} ms".format((end-ini) *1000))
+        return (end-ini) *1000,list(set([ x for x in m if is_uni(x)]))
 ##############################################################################
