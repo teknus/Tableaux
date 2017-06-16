@@ -127,7 +127,7 @@ def add_to_main(f1,f2,main_branch):
         main_branch.append(f2)
 
 
-def solve(main_branch,nos_fechados,betas,num_ramos=1,i=0):
+def solve(pilha_ramos_a, main_branch,nos_fechados,betas,num_ramos=1,i=0):
     #alfas
     n = len(main_branch)
     while i < n:
@@ -182,13 +182,13 @@ def solve(main_branch,nos_fechados,betas,num_ramos=1,i=0):
                     test = True
                 else:
                     pilha_ramos.append((main_branch[:]+[f1],[f2],nos_fechados,False))
-                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
+                f,ramo,n,num_ramos = solve(pilha_ramos_a, pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
-                        pilha_ramos_a.append((f, main_branch,n, num_ramos))
+                        pilha_ramos_a.append((f, main_branch[:],n, num_ramos))
                     main_branch = ramo+[f2]
-                    pilha_ramos_a.append((f,main_branch,n, num_ramos))
+                    pilha_ramos_a.append((f,main_branch[:],n, num_ramos))
                 temp_ramo = pilha_ramos.pop()
                 pilha_ramos.append((temp_ramo[0],temp_ramo[1],temp_ramo[2],True))
                 ######################################
@@ -202,13 +202,13 @@ def solve(main_branch,nos_fechados,betas,num_ramos=1,i=0):
                     test = True
                 else:
                     pilha_ramos.append((main_branch[:]+[f2],[f1],nos_fechados,False))
-                f,ramo,n,num_ramos = solve(pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
+                f,ramo,n,num_ramos = solve(pilha_ramos_a, pilha_ramos[-1][0],nos_fechados,betas,num_ramos,i)
                 if not f :
                     if test:
                         main_branch = ramo+[g1]+[g2]
-                        pilha_ramos_a.append((f, main_branch ,n , num_ramos))
+                        pilha_ramos_a.append((f, main_branch[:] ,n , num_ramos))
                     main_branch = ramo+[f1]
-                    pilha_ramos_a.append((f,main_branch,n,num_ramos))
+                    pilha_ramos_a.append((f,main_branch[:][:],n,num_ramos))
                 temp_ramo = pilha_ramos.pop()
                 pilha_ramos.append((temp_ramo[0],temp_ramo[1],temp_ramo[2],True))
                 ########################################
@@ -264,12 +264,13 @@ def getValoracao(pilha_ramos):
     i = 0 
     j = pilha_ramos
     j = [x[1] for x in pilha_ramos]
-    val = list()
+    val = list() 
     for x in j:
         for y in x:
             if is_uni(y):
                 val.append(y)
     i = 0
+    #print([x for x in j])
     temp = list()
     while i < len(val):
         j = i+1
@@ -284,6 +285,7 @@ def getValoracao(pilha_ramos):
     return list(set(temp))
 
 def run(main_branch):
+    pilha_ramos_a = list()
     main_branch = [FormulaDeEntrada(x[0],x[1]) for x in main_branch]
     main_branch.sort()
     nos = numero_nos(main_branch)
@@ -292,25 +294,25 @@ def run(main_branch):
     nos_fechados = [-1 for x in range(0,nos)]
     from time import time
     ini = time()
-    v,m,n,num_ramos = solve(main_branch,nos_fechados,betas)
+    v,m,n,num_ramos = solve(pilha_ramos_a, main_branch,nos_fechados,betas)
     end = time()
     if len(pilha_ramos_a) == 0:
-        # print("Valida")
-        # print("Numero de Nos: {}".format(nos))
-        # print("Numero de Ramos: {}".format(num_ramos))
-        # print("Tempo: {} ms".format((end-ini) *1000))
+        print("Valida")
+        print("Numero de Nos: {}".format(nos))
+        print("Numero de Ramos: {}".format(num_ramos))
+        print("Tempo: {} ms".format((end-ini) *1000))
         return (end-ini) *1000,num_ramos,nos
     elif len(pilha_ramos) > 1:
-        # print("Refutada")
-        # print("Valoracao:")
-        # print(list(set([ x for x in pilha_ramos[-1][0]+pilha_ramos[-1][1] if is_uni(x)])))
-        # print("Tempo: {} ms".format((end-ini) *1000))
-        val = getValoracao(pilha_ramos_a)
+        print("Refutada")
+        print("Valoracao:")
+        val = getValoracao(pilha_ramos)
+        print(val)
+        print("Tempo: {} ms".format((end-ini) *1000))
         return (end-ini) *1000,val
     else:
-        # print("Refutada")
-        # print("Valoracao: ")
-        # print(list(set([ x for x in m if is_uni(x)])))
-        # print("Tempo: {} ms".format((end-ini) *1000))
+        print("Refutada")
+        print("Valoracao: ")
+        print(list(set([ x for x in m if is_uni(x)])))
+        print("Tempo: {} ms".format((end-ini) *1000))
         return (end-ini) *1000,list(set([ x for x in m if is_uni(x)]))
 ##############################################################################
