@@ -255,7 +255,6 @@ def getValoracao(pilha_ramos):
             if is_uni(y):
                 val.append(y)
     i = 0
-    #print([x for x in j])
     temp = list()
     while i < len(val):
         j = i+1
