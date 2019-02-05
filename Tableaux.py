@@ -8,7 +8,7 @@ num_i = []
 pilha_ramos_a = list()
 
 #Essa classe torna possivel ordenar as formulas de entrada
-class FormulaDeEntrada:
+class InputForm:
     def __init__(self, value,form):
         self.value = 1 if value >= 1 else -1
         self.form = form
@@ -45,20 +45,6 @@ def is_alpha(value, op):
         return True
     else:
         return False
-
-def is_beta(value,op):
-    if value == 1 and op in ["|",">"]:
-        return True
-    elif value == -1 and op == "&":
-        return True
-    else:
-        return False
-
-def ramo_saturado(nos_fechados,form):
-    for i in nos_fechados:
-        if i != -1:
-            True
-    return False
 
 def ramo_fechado(main_branch):
     uni = [x for x in main_branch if is_uni(x)]
@@ -132,7 +118,6 @@ def solve(pilha_ramos_a, main_branch,nos_fechados,betas,num_ramos=1,i=0):
     n = len(main_branch)
     while i < n:
         if i > nos:
-            max_nos = i
             nos_fechados.append(-1)
         if nos_fechados[i] == -1:
             if not is_uni(main_branch[i]):
@@ -286,7 +271,7 @@ def getValoracao(pilha_ramos):
 
 def run(main_branch):
     pilha_ramos_a = list()
-    main_branch = [FormulaDeEntrada(x[0],x[1]) for x in main_branch]
+    main_branch = [InputForm(x[0],x[1]) for x in main_branch]
     main_branch.sort()
     nos = numero_nos(main_branch)
     main_branch = [(f.value,f.form) for f in main_branch]
@@ -294,7 +279,7 @@ def run(main_branch):
     nos_fechados = [-1 for x in range(0,nos)]
     from time import time
     ini = time()
-    v,m,n,num_ramos = solve(pilha_ramos_a, main_branch,nos_fechados,betas)
+    _,m,_,num_ramos = solve(pilha_ramos_a, main_branch,nos_fechados,betas)
     end = time()
     if len(pilha_ramos_a) == 0:
         print("Valida")
